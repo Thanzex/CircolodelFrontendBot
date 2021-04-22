@@ -36,6 +36,7 @@ jobs:
         uses: docker/build-push-action@v2.4.0
         with:
           tags: core.harbor.cluster.jetop.com/bots/circolo-del-frontend:${{github.sha}}
+          push: true
 
       - name: Kubectl tool installer
         uses: Azure/setup-kubectl@v1
