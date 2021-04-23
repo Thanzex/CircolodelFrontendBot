@@ -9,19 +9,23 @@ console.log("Starting.")
 sendMessageToAdmin("Sono stato riavviato.")
 
 bot.command('/start', (ctx) => {
+  console.log(`Got /start from ${ctx.chat.username}`)
   ctx.reply("Ciao! Sono un bot molto specifico che risponde solo a certi messaggi di Simone in CircoloDelFrontend.\nPurtroppo non ti posso essere di altro aiuto!")
 })
 
 bot.command('/test', (ctx) => {
+  console.log(`Got /test from ${ctx.chat.username}`)
   const message = ctx.update.message
   replyWithSticker(message)
 })
 
 bot.command("/showdb",(ctx) => {
+  console.log(`Got /showdb from ${ctx.chat.username}`)
   ctx.reply(printDB())
 }) 
 
 bot.command('/rebuild', (ctx) => {
+  console.log(`Got /rebuild from ${ctx.chat.username}`)
   DB.push('/admin/DB', {
     rebuilding: {
       inProgress: true,
@@ -31,11 +35,13 @@ bot.command('/rebuild', (ctx) => {
 })
 
 bot.command("/check", (ctx) => {
+  console.log(`Got /check from ${ctx.chat.username}`)
   const message = ctx.update.message
   checkLink(message, false)
 })
 
 bot.on("message", (ctx) => {
+  console.log(`Got /message from ${ctx.chat.username}`)
   const message = ctx.update.message
   handleMessage(message)
 })
@@ -59,9 +65,11 @@ function handleMessage(message) {
   if (message.chat.id == -1001483484509) {
     if (message.entities && message.entities[0].type == 'url') {
       if (message.from.username == "pow_ext") {
+        console.log("Got link from Simone")
         Omg.omg(replyWithSticker)(message)
         checkLink(message)
       } else {
+        console.log("Got link from group")
         checkLink(message)
       }
     }
@@ -82,8 +90,10 @@ function checkLink(message, fromGroup = true) {
   const links = DB.getData("/links")
 
   if (links.find(l => (l.host == host && l.path == pathname))) {
+    console.log("Got existing link.")
     bot.telegram.sendMessage(message.chat.id, "🟡Cartellino Giallo!🟡\nLink già inviato.")
   } else if (fromGroup) {
+    console.log("Got new link.")
     newLinkFromGroup(newLink)
   } else {
     bot.telegram.sendMessage(message.chat.id, "Link non ancora inviato!")
@@ -130,6 +140,7 @@ function handlePrivateMessage(message) {
  * @param {message} message 
  */
 function rebuildDatabase(message) {
+  console.log("Rebuilding database.")
   bot.telegram.sendMessage(message.chat.id, "Backup:")
   bot.telegram.sendMessage(message.chat.id, printDB())
   DB.push("/links", [])
@@ -155,6 +166,7 @@ function rebuildDatabase(message) {
  * @param {string} link 
  */
 function addNewLink(link) {
+  console.log("Adding link.")
   const url = new URL(link)
   const newEntry = {
     host: url.host,
