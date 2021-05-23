@@ -7,6 +7,9 @@ const axios = require('axios');
 const bot = new Telegraf(process.env.BOT_TOKEN || "")
 const Omg = new OMG()
 
+const GROUP_ID = -1001483484509;
+const ADMIN_ID = 644826120;
+
 const veryFunnyMessagesAboutFlutter = [
   "🚨<a href='https://i.imgur.com/Sml2Ayv.png'>&#8205;</a>",
   "🚨<a href='https://i.imgur.com/m0gb4Qa.png'>&#8205;</a>",
@@ -54,11 +57,36 @@ bot.command("/check", (ctx) => {
   checkLink(message, false)
 })
 
+bot.command("/send", (ctx) => {
+  sendMessageToGroup(ctx);
+})
+
 bot.on("message", (ctx) => {
   console.log(`Got /message from ${ctx.chat.username} in chat ${ctx.chat.id}`)
   const message = ctx.update.message
   handleMessage(message)
 })
+
+function sendMessageToGroup(ctx) {
+  if (ctx.message.chat.id != ADMIN_ID) return;
+  const message = ctx.update.message;
+  console.log(JSON.stringify(message));
+  const re = /\/send\s*\n/i;
+  const trash = message.text.match(re)[0];
+  const text = message.text.replace(re, "");
+
+  let entities = message.entities;
+  entities.shift();
+  entities = entities.map(entity => {
+    entity.offset -= trash.length;
+    return entity;
+  });
+  console.log(entities);
+  console.log(trash);
+
+  bot.telegram.sendMessage(message.chat.id, text, { entities: entities });
+  bot.telegram.sendMessage(GROUP_ID, text, { entities: entities });
+}
 
 /**
  * Controlla se il gruppo è quello giusto tramite ID della chat,
@@ -77,7 +105,7 @@ function handleMessage(message) {
    * Privato
    * -  DB Rebuild
    */
-  if (message.chat.id === -1001483484509) {
+  if (message.chat.id === GROUP_ID) {
     if (message.text.includes("flutter")) {
       replyWithMarkdown(message, veryFunnyMessagesAboutFlutter[randomNumber(0, veryFunnyMessagesAboutFlutter.length)])
     }
@@ -214,7 +242,7 @@ function replyWithMarkdown(message, textAnswer) {
 }
 
 function sendMessageToAdmin(text) {
-  bot.telegram.sendMessage(644826120, text)
+  bot.telegram.sendMessage(ADMIN_ID, text)
 }
 
 function randomNumber(min, max) {
