@@ -163,6 +163,7 @@ function handleMessage(message) {
  */
 function checkLink(message, fromGroup = true) {
   const newLink = extractLinkFromMessage(message)
+  if (!newLink) return;
   const { host, pathname } = new URL(newLink)
   const links = DB.getData("/links")
 
