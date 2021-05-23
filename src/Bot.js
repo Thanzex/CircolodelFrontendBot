@@ -80,18 +80,23 @@ bot.on("message", (ctx) => {
 function sendMessageToGroup(ctx) {
   if (ctx.message.chat.id != ADMIN_ID) return;
   const message = ctx.update.message;
-  const re = /\/send\s*\n/i;
-  const trash = message.text.match(re)[0];
-  const text = message.text.replace(re, "");
-
-  let entities = message.entities;
-  entities.shift();
-  entities = entities.map(entity => {
-    entity.offset -= trash.length;
-    return entity;
-  });
+  var { text, entities } = parseText(message);
   bot.telegram.sendMessage(message.chat.id, text, { entities: entities });
   bot.telegram.sendMessage(GROUP_ID, text, { entities: entities });
+
+  function parseText(message) {
+    const re = /\/send\s*\n/i;
+    const trash = message.text.match(re)[0];
+    const text = message.text.replace(re, "");
+
+    let entities = message.entities;
+    entities.shift();
+    entities = entities.map(entity => {
+      entity.offset -= trash.length;
+      return entity;
+    });
+    return { text, entities };
+  }
 }
 
 /**
@@ -195,8 +200,6 @@ function extractLinkFromMessage(message) {
  */
 function newLinkFromGroup(link) {
   addNewLink(link)
-  // sendMessageToAdmin("Nuovo link!\nBackup:")
-  // sendMessageToAdmin(printDB())
 }
 
 
