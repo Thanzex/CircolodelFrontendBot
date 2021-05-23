@@ -17,7 +17,7 @@ class OMG {
   omg(fn) {
     const now = new Date();
     const zero = new Date(0);
-    if (now.getDate() != this.lastOMG.getDate() &&
+    if (now.getDate() != this.lastOMG.getDate() ||
       now - this.lastOMG > zero.setDate(zero.getDate() + 1)) {
       this.lastOMG = now;
       return fn;
