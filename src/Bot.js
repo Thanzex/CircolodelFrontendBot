@@ -1,6 +1,8 @@
 const { Telegraf, } = require('telegraf')
-const { DB } = require('./Db')
+const { DB, addNewLink } = require('./Db')
 const { OMG } = require("./OMG")
+const { lol, rebuildFromHistory } = require('./rebuildFromHistory')
+const axios = require('axios');
 
 const bot = new Telegraf(process.env.BOT_TOKEN || "")
 const Omg = new OMG()
@@ -31,9 +33,9 @@ bot.command('/test', (ctx) => {
   replyWithSticker(message)
 })
 
-bot.command("/showdb",(ctx) => {
-  console.log(`Got /showdb from ${ctx.chat.username}`)
-  ctx.reply(printDB())
+bot.command("/links", (ctx) => {
+  console.log(`Got /links from ${ctx.chat.username}`)
+  printDB(ctx)
 }) 
 
 bot.command('/rebuild', (ctx) => {
@@ -105,9 +107,11 @@ function checkLink(message, fromGroup = true) {
   const { host, pathname } = new URL(newLink)
   const links = DB.getData("/links")
 
-  if (links.find(l => (l.host == host && l.path == pathname))) {
+  const existingLink = links.find(l => (l.host == host && l.path == pathname));
+  if (existingLink) {
     console.log("Got existing link.")
     bot.telegram.sendMessage(message.chat.id, "🟡Cartellino Giallo!🟡\nLink già inviato.")
+    if (fromGroup) bot.telegram.sendMessage(message.chat.id, "🔼", { reply_to_message_id: existingLink.id })
   } else if (fromGroup) {
     console.log("Got new link.")
     newLinkFromGroup(newLink)
@@ -131,13 +135,26 @@ function extractLinkFromMessage(message) {
  */
 function newLinkFromGroup(link) {
   addNewLink(link)
-  sendMessageToAdmin("Nuovo link!\nBackup:")
-  sendMessageToAdmin(printDB())
+  // sendMessageToAdmin("Nuovo link!\nBackup:")
+  // sendMessageToAdmin(printDB())
 }
 
 
-function printDB() {
-  return DB.getData("/links").map(obj => obj.complete).join("\n")
+function printDB(ctx) {
+  const links = DB.getData("/links").map(obj => obj.complete)
+  const messages = [""]
+  let length = 0
+  for (link of links) {
+    if (length + link.length > 4000) {
+      messages.push("")
+      length = 0
+}
+    messages[messages.length - 1] = messages[messages.length - 1].concat("\n", link)
+    length += link.length
+  }
+  messages.forEach(message => {
+    ctx.reply(message)
+  })
 }
 
 /**
@@ -155,41 +172,20 @@ function handlePrivateMessage(message) {
  * Ricostruisce il DB a partire da un messaggio con una lista di link
  * @param {message} message 
  */
-function rebuildDatabase(message) {
+async function rebuildDatabase(message) {
   console.log("Rebuilding database.")
-  bot.telegram.sendMessage(message.chat.id, "Backup:")
-  bot.telegram.sendMessage(message.chat.id, printDB())
-  DB.push("/links", [])
-  const links = message.text.split('\n')
-  const invalidLinks = []
-  links.forEach(link => {
-    try {
-      addNewLink(link)
-    } catch (e) {
-      invalidLinks.push(link)
-    }
-  })
-  bot.telegram.sendMessage(message.chat.id,
-    `Ho inserito ${links.length - invalidLinks.length}/${links.length} link \n\
-    ${invalidLinks.length ? 'Link non validi:\n\
-    ${invalidLinks.join("\n")': ''}`
-  )
-}
-
-/**
- * Aggiunge un link al DB da una stringa
- * 
- * @param {string} link 
- */
-function addNewLink(link) {
-  console.log("Adding link.")
-  const url = new URL(link)
-  const newEntry = {
-    host: url.host,
-    path: url.pathname,
-    complete: url.href
+  if (!message.document) {
+    console.log("Invalid message.")
+    return
   }
-  DB.push("/links[]", newEntry)
+  DB.push("/links", [])
+  console.log(message)
+  const { document } = message
+  const { file_id: fileId } = document
+  const fileUrl = await bot.telegram.getFileLink(fileId);
+  const response = await axios.get(fileUrl.href);
+  rebuildFromHistory(response.data)
+  bot.telegram.sendMessage(message.chat.id, `Completato!\nLink nel DB: ${DB.count('/links')}`)
 }
 
 /**
