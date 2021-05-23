@@ -10,6 +10,12 @@ const Omg = new OMG()
 const GROUP_ID = -1001483484509;
 const ADMIN_ID = 644826120;
 
+bot.telegram.setMyCommands([
+  { command: "/start", description: "Messaggio iniziale." },
+  { command: "/links", description: "Invia tutti i link salvati." },
+  { command: "/check", description: "Controlla che un link non sia già stato inviato." },
+])
+
 const veryFunnyMessagesAboutFlutter = [
   "🚨<a href='https://i.imgur.com/Sml2Ayv.png'>&#8205;</a>",
   "🚨<a href='https://i.imgur.com/m0gb4Qa.png'>&#8205;</a>",
