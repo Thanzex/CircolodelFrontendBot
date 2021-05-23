@@ -70,7 +70,6 @@ bot.on("message", (ctx) => {
 function sendMessageToGroup(ctx) {
   if (ctx.message.chat.id != ADMIN_ID) return;
   const message = ctx.update.message;
-  console.log(JSON.stringify(message));
   const re = /\/send\s*\n/i;
   const trash = message.text.match(re)[0];
   const text = message.text.replace(re, "");
@@ -81,9 +80,6 @@ function sendMessageToGroup(ctx) {
     entity.offset -= trash.length;
     return entity;
   });
-  console.log(entities);
-  console.log(trash);
-
   bot.telegram.sendMessage(message.chat.id, text, { entities: entities });
   bot.telegram.sendMessage(GROUP_ID, text, { entities: entities });
 }
@@ -207,7 +203,6 @@ async function rebuildDatabase(message) {
     return
   }
   DB.push("/links", [])
-  console.log(message)
   const { document } = message
   const { file_id: fileId } = document
   const fileUrl = await bot.telegram.getFileLink(fileId);
