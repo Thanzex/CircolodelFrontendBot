@@ -62,9 +62,13 @@ bot.command("/send", (ctx) => {
 })
 
 bot.on("message", (ctx) => {
+  try {
   console.log(`Got /message from ${ctx.chat.username} in chat ${ctx.chat.id}`)
   const message = ctx.update.message
   handleMessage(message)
+  } catch (e) {
+    console.log(e)
+  }
 })
 
 function sendMessageToGroup(ctx) {
