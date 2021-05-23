@@ -5,11 +5,23 @@ const { OMG } = require("./OMG")
 const bot = new Telegraf(process.env.BOT_TOKEN || "")
 const Omg = new OMG()
 
+const veryFunnyMessagesAboutFlutter = [
+  "🚨<a href='https://i.imgur.com/Sml2Ayv.png'>&#8205;</a>",
+  "🚨<a href='https://i.imgur.com/m0gb4Qa.png'>&#8205;</a>",
+  "🚨<a href='https://i.imgur.com/SnSjGMa.png'>&#8205;</a>",
+  "🚨<a href='https://i.imgur.com/GsdpgXF.png'>&#8205;</a>",
+  "🚨<a href='https://i.imgur.com/ilfzQUW.png'>&#8205;</a>",
+  "🚨<a href='https://i.imgur.com/mlwDtRi.png'>&#8205;</a>",
+  "Finally we know: HTML and regex<a href='https://i.imgur.com/10nBaqX.png'>&#8205;</a>",
+  "<i>beep boop</i> flutter è una 💩<a href='https://www.reddit.com/r/mAndroidDev/comments/kp6ks7/now_tell_me_which_one_of_you_did_this/?utm_source=share&utm_medium=web2x&context=3)'>.</a>",
+  "<i><a href='https://medium.com/@acedened/ios-app-from-flutters-showcase-page-might-not-use-flutter-at-all-23488ff82407'>Flutter is so great that mostly native app is showcased on Flutter page</a>"
+]
+
 console.log("Starting.")
 sendMessageToAdmin("Sono stato riavviato.")
 
 bot.command('/start', (ctx) => {
-  console.log(`Got /start from ${ctx.chat.username}`)
+  console.log(`Got /start from ${ctx.chat.username} in chat ${ctx.chat.id}`)
   ctx.reply("Ciao! Sono un bot molto specifico che risponde solo a certi messaggi di Simone in CircoloDelFrontend.\nPurtroppo non ti posso essere di altro aiuto!")
 })
 
@@ -41,7 +53,7 @@ bot.command("/check", (ctx) => {
 })
 
 bot.on("message", (ctx) => {
-  console.log(`Got /message from ${ctx.chat.username}`)
+  console.log(`Got /message from ${ctx.chat.username} in chat ${ctx.chat.id}`)
   const message = ctx.update.message
   handleMessage(message)
 })
@@ -49,21 +61,25 @@ bot.on("message", (ctx) => {
 /**
  * Controlla se il gruppo è quello giusto tramite ID della chat,
  * che il messaggio sia di Simone e che contenga un link.
- * In tal caso chiama OMG per rispondere al messaggio. 
- * 
- * @param {message} message 
+ * In tal caso chiama OMG per rispondere al messaggio.
+ *
+ * @param @param {import('telegraf/typings/core/types/typegram').Message} message
  */
 function handleMessage(message) {
   /**
    * Gruppo
    * -  Link
+   *    - flutter praises
    *    - Link di Simone
    *    - Link normale
    * Privato
    * -  DB Rebuild
    */
-  if (message.chat.id == -1001483484509) {
-    if (message.entities && message.entities[0].type == 'url') {
+  if (message.chat.id === -1001483484509) {
+    if (message.text.includes("flutter")) {
+      replyWithMarkdown(message, veryFunnyMessagesAboutFlutter[randomNumber(0, veryFunnyMessagesAboutFlutter.length)])
+    }
+    else if (message.entities && message.entities[0].type == 'url') {
       if (message.from.username == "pow_ext") {
         console.log("Got link from Simone")
         Omg.omg(replyWithSticker)(message)
@@ -188,8 +204,25 @@ function replyWithSticker(message) {
   )
 }
 
+/**
+ * Risponde al messaggio con un messaggio testuale
+ * @param {message} message
+ * @param {string} textAnswer
+ */
+function replyWithMarkdown(message, textAnswer) {
+  bot.telegram.sendMessage(
+    message.chat.id,
+    textAnswer,
+    { parse_mode: 'HTML' }
+  )
+}
+
 function sendMessageToAdmin(text) {
   bot.telegram.sendMessage(644826120, text)
+}
+
+function randomNumber(min, max) {
+  return Math.floor(Math.random() * (max - min) + min);
 }
 
 exports.bot = bot
