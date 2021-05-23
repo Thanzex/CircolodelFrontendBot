@@ -39,7 +39,7 @@ bot.command('/test', (ctx) => {
 bot.command("/links", (ctx) => {
   console.log(`Got /links from ${ctx.chat.username}`)
   printDB(ctx)
-}) 
+})
 
 bot.command('/rebuild', (ctx) => {
   console.log(`Got /rebuild from ${ctx.chat.username}`)
@@ -63,9 +63,9 @@ bot.command("/send", (ctx) => {
 
 bot.on("message", (ctx) => {
   try {
-  console.log(`Got /message from ${ctx.chat.username} in chat ${ctx.chat.id}`)
-  const message = ctx.update.message
-  handleMessage(message)
+    console.log(`Got /message from ${ctx.chat.username} in chat ${ctx.chat.id}`)
+    const message = ctx.update.message
+    handleMessage(message)
   } catch (e) {
     console.log(e)
   }
@@ -102,6 +102,8 @@ function handleMessage(message) {
    *    - flutter praises
    *    - Link di Simone
    *    - Link normale
+   *  - Messaggio normale
+   *    - Good Bot 🤩
    * Privato
    * -  DB Rebuild
    */
@@ -109,7 +111,7 @@ function handleMessage(message) {
     if (message.text.includes("flutter")) {
       replyWithMarkdown(message, veryFunnyMessagesAboutFlutter[randomNumber(0, veryFunnyMessagesAboutFlutter.length)])
     }
-    else if (message.entities && message.entities[0].type == 'url') {
+    else if (extractLinkFromMessage(message)) {
       if (message.from.username == "pow_ext") {
         console.log("Got link from Simone")
         Omg.omg(replyWithSticker)(message)
@@ -118,11 +120,34 @@ function handleMessage(message) {
         console.log("Got link from group")
         checkLink(message)
       }
+    } else {
+      if (message.text.match(/good\sbot/img)) {
+        replyToGoodBot();
+      } else if (message.text.match(/bad\sbot/img)) {
+        replyToBadBot();
+      }
+
     }
   } else {
     handlePrivateMessage(message)
     if (DB.getData('/admin/DB/rebuilding/inProgress'))
       DB.push('/admin/DB/rebuilding/inProgress', false)
+  }
+
+  function replyToBadBot() {
+    bot.telegram.sendSticker(
+      message.chat.id,
+      'CAACAgIAAxkBAAECVK5gqpLj7UZl0rsSKCbBHH1L1qlf1gACpwoAAhsViErJQuPFqV7QJh8E',
+      { reply_to_message_id: message.message_id }
+    );
+  }
+
+  function replyToGoodBot() {
+    bot.telegram.sendSticker(
+      message.chat.id,
+      'CAACAgIAAxkBAAECVKdgqpCUCCBzUogicaK7yqorM-RgawACNQADrWW8FPWlcVzFMOXgHwQ',
+      { reply_to_message_id: message.message_id }
+    );
   }
 }
 
@@ -176,7 +201,7 @@ function printDB(ctx) {
     if (length + link.length > 4000) {
       messages.push("")
       length = 0
-}
+    }
     messages[messages.length - 1] = messages[messages.length - 1].concat("\n", link)
     length += link.length
   }
