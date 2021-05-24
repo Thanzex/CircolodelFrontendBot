@@ -22,6 +22,10 @@ function addNewLink(link, id = null) {
     }
 
     const url = new URL(link)
+
+    if (DB.find('/links', (entry) => entry.host == url.host && entry.path == url.path))
+      return;
+    
     const newEntry = {
       host: url.host,
       path: url.pathname,
