@@ -198,7 +198,8 @@ function checkLink(message, fromGroup = true) {
 }
 
 function extractLinkFromMessage(message) {
-  const urlEntity = message.entities.find((e) => e.type == 'url')
+  const urlEntity = message.entities?.find((e) => e.type == 'url')
+  if (!urlEntity) return false
   const start = urlEntity.offset
   const stop = start + urlEntity.length
   return fixLinkProtocol(message.text.slice(start, stop))
