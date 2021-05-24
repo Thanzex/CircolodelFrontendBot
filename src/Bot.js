@@ -127,7 +127,7 @@ function handleMessage(message) {
    * -  DB Rebuild
    */
   if (message.chat.id === GROUP_ID) {
-    if (message.text.includes("flutter")) {
+    if (message.text?.includes("flutter")) {
       replyWithMarkdown(message, veryFunnyMessagesAboutFlutter[randomNumber(0, veryFunnyMessagesAboutFlutter.length)])
     }
     else if (extractLinkFromMessage(message)) {
@@ -141,10 +141,10 @@ function handleMessage(message) {
       }
     } else {
       console.log('Normal message.');
-      if (message.text.match(/good\sbot/img)) {
+      if (message.text?.match(/good\sbot/img)) {
         console.log("Good bot 🤩");
         replyToGoodBot();
-      } else if (message.text.match(/bad\sbot/img)) {
+      } else if (message.text?.match(/bad\sbot/img)) {
         console.log("Bad bot 😥");
         replyToBadBot();
       }
