@@ -1,6 +1,7 @@
 
 const { JsonDB } = require('node-json-db')
 const { Config } = require('node-json-db/dist/lib/JsonDBConfig')
+const { fixLinkProtocol } = require("./utils")
 
 
 const DB = new JsonDB(new Config('./data/db', true))
@@ -16,10 +17,7 @@ DB.push("/links", [])
 function addNewLink(link, id = null) {
   console.log("Adding link.")
   try {
-    if (!link.startsWith("http")) {
-      console.log("No protocol:", link)
-      link = 'https://'.concat(link)
-    }
+    link = fixLinkProtocol(link)
 
     const url = new URL(link)
 
@@ -40,3 +38,5 @@ function addNewLink(link, id = null) {
 
 exports.DB = DB
 exports.addNewLink = addNewLink
+
+

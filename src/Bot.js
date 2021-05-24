@@ -3,6 +3,8 @@ const { DB, addNewLink } = require('./Db')
 const { OMG } = require("./OMG")
 const { lol, rebuildFromHistory } = require('./rebuildFromHistory')
 const axios = require('axios');
+const { fixLinkProtocol, randomNumber } = require('./utils');
+const { veryFunnyMessagesAboutFlutter } = require("./veryFunnyMessagesAboutFlutter");
 
 const bot = new Telegraf(process.env.BOT_TOKEN || "")
 const Omg = new OMG()
@@ -15,18 +17,6 @@ bot.telegram.setMyCommands([
   { command: "/links", description: "Invia tutti i link salvati." },
   { command: "/check", description: "Controlla che un link non sia già stato inviato." },
 ])
-
-const veryFunnyMessagesAboutFlutter = [
-  "🚨<a href='https://i.imgur.com/Sml2Ayv.png'>&#8205;</a>",
-  "🚨<a href='https://i.imgur.com/m0gb4Qa.png'>&#8205;</a>",
-  "🚨<a href='https://i.imgur.com/SnSjGMa.png'>&#8205;</a>",
-  "🚨<a href='https://i.imgur.com/GsdpgXF.png'>&#8205;</a>",
-  "🚨<a href='https://i.imgur.com/ilfzQUW.png'>&#8205;</a>",
-  "🚨<a href='https://i.imgur.com/mlwDtRi.png'>&#8205;</a>",
-  "Finally we know: HTML and regex<a href='https://i.imgur.com/10nBaqX.png'>&#8205;</a>",
-  "<i>beep boop</i> flutter è una 💩<a href='https://www.reddit.com/r/mAndroidDev/comments/kp6ks7/now_tell_me_which_one_of_you_did_this/?utm_source=share&utm_medium=web2x&context=3)'>.</a>",
-  "<i><a href='https://medium.com/@acedened/ios-app-from-flutters-showcase-page-might-not-use-flutter-at-all-23488ff82407'>Flutter is so great that mostly native app is showcased on Flutter page</a>"
-]
 
 console.log("Starting.")
 sendMessageToAdmin("Sono stato riavviato.")
@@ -190,12 +180,12 @@ function extractLinkFromMessage(message) {
   const urlEntity = message.entities.find((e) => e.type == 'url')
   const start = urlEntity.offset
   const stop = start + urlEntity.length
-  return message.text.slice(start, stop)
+  return fixLinkProtocol(message.text.slice(start, stop))
 }
 
 /**
  * Step da eseguire quando si riceve un nuovo link nel gruppo.
- * Aggiunge un link al db e invia un backup del db a Thanzex
+ * Aggiunge un link al db.
  * @param {string} link 
  */
 function newLinkFromGroup(link) {
@@ -279,8 +269,5 @@ function sendMessageToAdmin(text) {
   bot.telegram.sendMessage(ADMIN_ID, text)
 }
 
-function randomNumber(min, max) {
-  return Math.floor(Math.random() * (max - min) + min);
-}
 
 exports.bot = bot
