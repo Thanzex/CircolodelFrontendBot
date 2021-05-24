@@ -32,6 +32,11 @@ bot.command('/test', (ctx) => {
   replyWithSticker(message)
 })
 
+bot.command('/omg', (ctx) => {
+  console.log("Set OMG.")
+  Omg.omg(() => { })
+})
+
 bot.command("/links", (ctx) => {
   console.log(`Got /links from ${ctx.chat.username}`)
   printDB(ctx)
