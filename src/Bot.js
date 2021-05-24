@@ -38,24 +38,36 @@ bot.command('/omg', (ctx) => {
 })
 
 bot.command("/links", (ctx) => {
-  console.log(`Got /links from ${ctx.chat.username}`)
-  printDB(ctx)
+  try {
+    console.log(`Got /links from ${ctx.chat.username}`)
+    printDB(ctx)
+  } catch (e) {
+    console.log(e);
+  }
 })
 
 bot.command('/rebuild', (ctx) => {
-  console.log(`Got /rebuild from ${ctx.chat.username}`)
-  DB.push('/admin/DB', {
-    rebuilding: {
-      inProgress: true,
-      chatId: ctx.chat.id
-    }
-  })
+  try {
+    console.log(`Got /rebuild from ${ctx.chat.username}`)
+    DB.push('/admin/DB', {
+      rebuilding: {
+        inProgress: true,
+        chatId: ctx.chat.id
+      }
+    })
+  } catch (e) {
+    console.log(e);
+  }
 })
 
 bot.command("/check", (ctx) => {
-  console.log(`Got /check from ${ctx.chat.username}`)
-  const message = ctx.update.message
-  checkLink(message, false)
+  try {
+    console.log(`Got /check from ${ctx.chat.username}`)
+    const message = ctx.update.message
+    checkLink(message, false)
+  } catch (e) {
+    console.log(e)
+  }
 })
 
 bot.command("/send", (ctx) => {
