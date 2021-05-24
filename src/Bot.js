@@ -122,6 +122,7 @@ function handleMessage(message) {
    *    - Link normale
    *  - Messaggio normale
    *    - Good Bot 🤩
+   *    - Bad Bot 😥
    * Privato
    * -  DB Rebuild
    */
@@ -139,9 +140,12 @@ function handleMessage(message) {
         checkLink(message)
       }
     } else {
+      console.log('Normal message.');
       if (message.text.match(/good\sbot/img)) {
+        console.log("Good bot 🤩");
         replyToGoodBot();
       } else if (message.text.match(/bad\sbot/img)) {
+        console.log("Bad bot 😥");
         replyToBadBot();
       }
 
