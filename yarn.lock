@@ -165,3 +165,7 @@ telegraf@^4.3.0:
 typegram@^3.2.0:
   version "3.2.3"
   resolved "https://registry.npmjs.org/typegram/-/typegram-3.2.3.tgz"
+
+typescript@^4.2.4:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.4.tgz#8610b59747de028fda898a8aef0e103f156d0961"

@@ -3,7 +3,8 @@
  * delle risposte ai link.
  * Perde lo stato se il programma è riavviato, NBD.
  */
-class OMG {
+export class OMG {
+  private lastOMG: Date
   constructor() {
     this.lastOMG = new Date(0);
   }
@@ -14,15 +15,15 @@ class OMG {
    * 
    * @param {function} fn 
    */
-  omg(fn) {
+  omg(fn: Function) {
     const now = new Date();
     const zero = new Date(0);
     if (now.getDate() != this.lastOMG.getDate() ||
-      now - this.lastOMG > zero.setDate(zero.getDate() + 1)) {
+      now.getTime() - this.lastOMG.getTime() > zero.setDate(zero.getDate() + 1)) {
       this.lastOMG = now;
       return fn;
     }
     return () => { };
   }
 }
-exports.OMG = OMG;
+

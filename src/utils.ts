@@ -1,4 +1,4 @@
-function fixLinkProtocol(link) {
+export function fixLinkProtocol(link: string) {
   if (!link.startsWith("http")) {
     console.log("No protocol:", link);
     link = 'https://'.concat(link);
@@ -6,8 +6,6 @@ function fixLinkProtocol(link) {
   return link;
 }
 
-function randomNumber(min, max) {
+export function randomNumber(min: number, max: number) {
   return Math.floor(Math.random() * (max - min) + min);
 }
-exports.fixLinkProtocol = fixLinkProtocol;
-exports.randomNumber = randomNumber

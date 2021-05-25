@@ -1,5 +1,5 @@
-const { bot } = require('./Bot.js')
-const { DB } = require('./Db.js')
+import { bot } from './Bot.js'
+import { DB } from './Db.js'
 
 bot.launch()
 
