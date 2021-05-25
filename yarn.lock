@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@types/node@^15.6.1":
+  version "15.6.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.6.1.tgz#32d43390d5c62c5b6ec486a9bc9c59544de39a08"
+
 abort-controller@^3.0.0:
   version "3.0.0"
   resolved "https://registry.npmjs.org/abort-controller/-/abort-controller-3.0.0.tgz"
@@ -165,3 +169,7 @@ telegraf@^4.3.0:
 typegram@^3.2.0:
   version "3.2.3"
   resolved "https://registry.npmjs.org/typegram/-/typegram-3.2.3.tgz"
+
+typescript@^4.2.4:
+  version "4.2.4"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.2.4.tgz#8610b59747de028fda898a8aef0e103f156d0961"

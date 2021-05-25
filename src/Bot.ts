@@ -1,16 +1,18 @@
-const { Telegraf, } = require('telegraf')
-const { DB, addNewLink } = require('./Db')
-const { OMG } = require("./OMG")
-const { lol, rebuildFromHistory } = require('./rebuildFromHistory')
-const axios = require('axios');
-const { fixLinkProtocol, randomNumber } = require('./utils');
-const { veryFunnyMessagesAboutFlutter } = require("./veryFunnyMessagesAboutFlutter");
+import axios from 'axios'
+import { Context, NarrowedContext, Telegraf } from 'telegraf'
+import { Message, Update } from 'telegraf/typings/core/types/typegram'
+import { addNewLink, DB, DBEntry } from './Db'
+import { OMG } from "./OMG"
+import { rebuildFromHistory } from './rebuildFromHistory'
+import { fixLinkProtocol, randomNumber } from './utils'
+import { veryFunnyMessagesAboutFlutter } from "./veryFunnyMessagesAboutFlutter"
 
-const bot = new Telegraf(process.env.BOT_TOKEN || "")
+export const bot = new Telegraf(process.env.BOT_TOKEN || "")
 const Omg = new OMG()
 
-const GROUP_ID = -1001483484509;
+
 const ADMIN_ID = 644826120;
+const GROUP_ID = ADMIN_ID;
 
 bot.telegram.setMyCommands([
   { command: "/start", description: "Messaggio iniziale." },
@@ -18,28 +20,35 @@ bot.telegram.setMyCommands([
   { command: "/check", description: "Controlla che un link non sia già stato inviato." },
 ])
 
+bot
+
 console.log("Starting.")
 sendMessageToAdmin("Sono stato riavviato.")
 
 bot.command('/start', (ctx) => {
+  if (ctx.chat.type != 'private') return;
   console.log(`Got /start from ${ctx.chat.username} in chat ${ctx.chat.id}`)
   ctx.reply("Ciao! Sono un bot molto specifico che risponde solo a certi messaggi di Simone in CircoloDelFrontend.\nPurtroppo non ti posso essere di altro aiuto!")
 })
 
 bot.command('/test', (ctx) => {
-  console.log(`Got /test from ${ctx.chat.username}`)
+  if (ctx.chat.type == 'private')
+    console.log(`Got /test from ${ctx.chat.username}`)
+
   const message = ctx.update.message
   replyWithSticker(message)
 })
 
 bot.command('/omg', (ctx) => {
   console.log("Set OMG.")
-  Omg.omg(() => { })
+  Omg.omg(() => null)
 })
 
 bot.command("/links", (ctx) => {
-  try {
+  if (ctx.chat.type == 'private')
     console.log(`Got /links from ${ctx.chat.username}`)
+
+  try {
     printDB(ctx)
   } catch (e) {
     console.log(e);
@@ -47,6 +56,7 @@ bot.command("/links", (ctx) => {
 })
 
 bot.command('/rebuild', (ctx) => {
+  if (ctx.chat.type != 'private') return;
   try {
     console.log(`Got /rebuild from ${ctx.chat.username}`)
     DB.push('/admin/DB', {
@@ -61,8 +71,10 @@ bot.command('/rebuild', (ctx) => {
 })
 
 bot.command("/check", (ctx) => {
-  try {
+  if (ctx.chat.type == 'private')
     console.log(`Got /check from ${ctx.chat.username}`)
+
+  try {
     const message = ctx.update.message
     checkLink(message, false)
   } catch (e) {
@@ -74,9 +86,8 @@ bot.command("/send", (ctx) => {
   sendMessageToGroup(ctx);
 })
 
-bot.on("message", (ctx) => {
+bot.on(['text', 'document'], (ctx) => {
   try {
-    console.log(`Got /message from ${ctx.chat.username} in chat ${ctx.chat.id}`)
     const message = ctx.update.message
     handleMessage(message)
   } catch (e) {
@@ -84,26 +95,28 @@ bot.on("message", (ctx) => {
   }
 })
 
-function sendMessageToGroup(ctx) {
+function sendMessageToGroup(ctx: NarrowedContext<Context<Update>, { message: Update.New & Update.NonChannel & Message.TextMessage; update_id: number }>) {
   if (ctx.message.chat.id != ADMIN_ID) return;
   const message = ctx.update.message;
   var { text, entities } = parseText(message);
   bot.telegram.sendMessage(message.chat.id, text, { entities: entities });
   bot.telegram.sendMessage(GROUP_ID, text, { entities: entities });
+}
 
-  function parseText(message) {
-    const re = /\/send\s*\n/i;
-    const trash = message.text.match(re)[0];
-    const text = message.text.replace(re, "");
+function parseText(msg: Message.TextMessage) {
+  const re = /\/send\s*\n/i;
+  const trash = msg.text.match(re)!.shift()!
+  const text = msg.text.replace(re, "");
 
-    let entities = message.entities;
-    entities.shift();
+  let entities = msg.entities;
+  if (entities) {
+    entities?.shift();
     entities = entities.map(entity => {
       entity.offset -= trash.length;
       return entity;
     });
-    return { text, entities };
   }
+  return { text, entities };
 }
 
 /**
@@ -111,9 +124,9 @@ function sendMessageToGroup(ctx) {
  * che il messaggio sia di Simone e che contenga un link.
  * In tal caso chiama OMG per rispondere al messaggio.
  *
- * @param @param {import('telegraf/typings/core/types/typegram').Message} message
+ * @param message
  */
-function handleMessage(message) {
+function handleMessage(message: Message.DocumentMessage | Message.TextMessage) {
   /**
    * Gruppo
    * -  Link
@@ -127,63 +140,76 @@ function handleMessage(message) {
    * -  DB Rebuild
    */
   if (message.chat.id === GROUP_ID) {
-    if (message.text.includes("flutter")) {
-      replyWithMarkdown(message, veryFunnyMessagesAboutFlutter[randomNumber(0, veryFunnyMessagesAboutFlutter.length)])
-    }
-    else if (extractLinkFromMessage(message)) {
-      if (message.from.username == "pow_ext") {
-        console.log("Got link from Simone")
-        Omg.omg(replyWithSticker)(message)
-        checkLink(message)
-      } else {
-        console.log("Got link from group")
-        checkLink(message)
-      }
-    } else {
-      console.log('Normal message.');
-      if (message.text.match(/good\sbot/img)) {
-        console.log("Good bot 🤩");
-        replyToGoodBot();
-      } else if (message.text.match(/bad\sbot/img)) {
-        console.log("Bad bot 😥");
-        replyToBadBot();
-      }
-
-    }
+    messageFromGroup(message)
   } else {
     handlePrivateMessage(message)
     if (DB.getData('/admin/DB/rebuilding/inProgress'))
       DB.push('/admin/DB/rebuilding/inProgress', false)
   }
 
-  function replyToBadBot() {
-    bot.telegram.sendSticker(
-      message.chat.id,
-      'CAACAgIAAxkBAAECVK5gqpLj7UZl0rsSKCbBHH1L1qlf1gACpwoAAhsViErJQuPFqV7QJh8E',
-      { reply_to_message_id: message.message_id }
-    );
-  }
+}
+function messageFromGroup(message: Message.TextMessage | Message.DocumentMessage) {
+  if (!('text' in message)) return;
 
-  function replyToGoodBot() {
-    bot.telegram.sendSticker(
-      message.chat.id,
-      'CAACAgIAAxkBAAECVKdgqpCUCCBzUogicaK7yqorM-RgawACNQADrWW8FPWlcVzFMOXgHwQ',
-      { reply_to_message_id: message.message_id }
-    );
+  if (message.text.match(/flutter/img)) {
+    replyWithMarkdown(message, veryFunnyMessagesAboutFlutter[randomNumber(0, veryFunnyMessagesAboutFlutter.length)])
   }
+  else if (extractLinkFromMessage(message)) {
+    messageFromGroupWithLink(message)
+  } else {
+    normalMessageFromGroup(message)
+  }
+}
+
+function normalMessageFromGroup(message: Message.TextMessage) {
+  console.log('Normal message.')
+  if (message.text?.match(/good\sbot/img)) {
+    console.log("Good bot 🤩")
+    replyToGoodBot(message)
+  } else if (message.text?.match(/bad\sbot/img)) {
+    console.log("Bad bot 😥")
+    replyToBadBot(message)
+  }
+}
+
+function messageFromGroupWithLink(message: Message.TextMessage) {
+  if (message.from?.username == "pow_ext") {
+    console.log("Got link from Simone")
+    Omg.omg(replyWithSticker)(message)
+    checkLink(message)
+  } else {
+    console.log("Got link from group")
+    checkLink(message)
+  }
+}
+
+function replyToBadBot(message: Message) {
+  bot.telegram.sendSticker(
+    message.chat.id,
+    'CAACAgIAAxkBAAECVK5gqpLj7UZl0rsSKCbBHH1L1qlf1gACpwoAAhsViErJQuPFqV7QJh8E',
+    { reply_to_message_id: message.message_id }
+  );
+}
+
+function replyToGoodBot(message: Message) {
+  bot.telegram.sendSticker(
+    message.chat.id,
+    'CAACAgIAAxkBAAECVKdgqpCUCCBzUogicaK7yqorM-RgawACNQADrWW8FPWlcVzFMOXgHwQ',
+    { reply_to_message_id: message.message_id }
+  );
 }
 
 /**
  * Controlla se un link è già stato inviato
- * @param {import('telegraf/typings/core/types/typegram').Message} message 
+ * @param message 
  */
-function checkLink(message, fromGroup = true) {
+function checkLink(message: Message.TextMessage, fromGroup = true) {
   const newLink = extractLinkFromMessage(message)
   if (!newLink) return;
   const { host, pathname } = new URL(newLink)
   const links = DB.getData("/links")
 
-  const existingLink = links.find(l => (l.host == host && l.path == pathname));
+  const existingLink = links.find((e: DBEntry) => (e.host == host && e.path == pathname));
   if (existingLink) {
     console.log("Got existing link.")
     bot.telegram.sendMessage(message.chat.id, "🟡Cartellino Giallo!🟡\nLink già inviato.")
@@ -197,7 +223,7 @@ function checkLink(message, fromGroup = true) {
 
 }
 
-function extractLinkFromMessage(message) {
+function extractLinkFromMessage(message: Message.TextMessage) {
   const urlEntity = message.entities?.find((e) => e.type == 'url')
   if (!urlEntity) return false
   const start = urlEntity.offset
@@ -210,16 +236,16 @@ function extractLinkFromMessage(message) {
  * Aggiunge un link al db.
  * @param {string} link 
  */
-function newLinkFromGroup(link) {
+function newLinkFromGroup(link: string) {
   addNewLink(link)
 }
 
 
-function printDB(ctx) {
-  const links = DB.getData("/links").map(obj => obj.complete)
+function printDB(ctx: NarrowedContext<Context<Update>, { message: Update.New & Update.NonChannel & Message.TextMessage; update_id: number }>) {
+  const links = DB.getData("/links").map((obj: DBEntry) => obj.complete)
   const messages = [""]
   let length = 0
-  for (link of links) {
+  for (let link of links) {
     if (length + link.length > 4000) {
       messages.push("")
       length = 0
@@ -236,7 +262,7 @@ function printDB(ctx) {
  * Gestisce un messaggio in privato, 
  * @param {import('telegraf/typings/core/types/typegram').Message} message 
  */
-function handlePrivateMessage(message) {
+function handlePrivateMessage(message: Message.TextMessage | Message.DocumentMessage) {
   const rebuilding = DB.getData('/admin/DB/rebuilding')
   if (rebuilding.inProgress && rebuilding.chatId == message.chat.id) {
     rebuildDatabase(message)
@@ -247,9 +273,9 @@ function handlePrivateMessage(message) {
  * Ricostruisce il DB a partire da un messaggio con una lista di link
  * @param {message} message 
  */
-async function rebuildDatabase(message) {
+async function rebuildDatabase(message: Message.TextMessage | Message.DocumentMessage) {
   console.log("Rebuilding database.")
-  if (!message.document) {
+  if (!('document' in message)) {
     console.log("Invalid message.")
     return
   }
@@ -266,7 +292,7 @@ async function rebuildDatabase(message) {
  * Risponde al messaggio con lo sticker di jetop_it "🙏"
  * @param {message} message 
  */
-function replyWithSticker(message) {
+function replyWithSticker(message: Update.New & Update.NonChannel & Message.TextMessage) {
   bot.telegram.sendSticker(
     message.chat.id,
     'CAACAgQAAxUAAWCAdwtD3rfXoHZLp2tP1EPsWbF_AAJ8CQACQ5AIUAPiUsjsk-JtHwQ',
@@ -279,7 +305,7 @@ function replyWithSticker(message) {
  * @param {message} message
  * @param {string} textAnswer
  */
-function replyWithMarkdown(message, textAnswer) {
+function replyWithMarkdown(message: Message.TextMessage, textAnswer: string) {
   bot.telegram.sendMessage(
     message.chat.id,
     textAnswer,
@@ -287,7 +313,7 @@ function replyWithMarkdown(message, textAnswer) {
   )
 }
 
-function sendMessageToAdmin(text) {
+function sendMessageToAdmin(text: string) {
   bot.telegram.sendMessage(ADMIN_ID, text)
 }
 
