@@ -12,7 +12,7 @@ const Omg = new OMG()
 
 
 const ADMIN_ID = 644826120;
-const GROUP_ID = ADMIN_ID;
+const GROUP_ID = -1001483484509;
 
 bot.telegram.setMyCommands([
   { command: "/start", description: "Messaggio iniziale." },
