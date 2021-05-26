@@ -12,8 +12,6 @@ export class OMG {
   /**
    * Ritorna la funzione in ingresso solo se è il giorno è diverso
    * o sono passate almeno 24 ore dall'ultimo messaggio.
-   * 
-   * @param {function} fn 
    */
   omg(fn: Function) {
     const now = new Date();

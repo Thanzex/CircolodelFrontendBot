@@ -1,7 +1,7 @@
 
 import { JsonDB } from 'node-json-db'
-const { Config } = require('node-json-db/dist/lib/JsonDBConfig')
 import { fixLinkProtocol } from "./utils"
+const { Config } = require('node-json-db/dist/lib/JsonDBConfig')
 
 
 export const DB = new JsonDB(new Config('./data/db', true))
@@ -10,9 +10,6 @@ DB.push("/links", [])
 
 /**
  * Aggiunge un link al DB da una stringa
- * 
- * @param {string} link 
- * @param {number} id id del messaggio con il link
  */
 export function addNewLink(link: string, id = 0) {
   console.log("Adding link.")

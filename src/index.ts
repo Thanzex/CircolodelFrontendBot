@@ -1,5 +1,4 @@
-import { bot } from './Bot.js'
-import { DB } from './Db.js'
+import { bot } from './bot'
 
 bot.launch()
 

@@ -1,10 +1,8 @@
-import { parse, HTMLElement } from 'node-html-parser'
-import fs from 'fs'
-import { addNewLink } from './Db'
+import { HTMLElement, parse } from 'node-html-parser';
+import { addNewLink } from './db';
 
 /**
- *
- * @param {string} history
+ * Ricostruisce il DB da un dump della chat di telegram
  */
 export function rebuildFromHistory(history: string) {
   const root = parse(history);
