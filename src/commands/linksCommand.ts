@@ -1,5 +1,3 @@
-import { Context, NarrowedContext } from 'telegraf';
-import { Message, Update } from 'telegraf/typings/core/types/typegram';
 import { CommandHandlerParams } from '../common';
 import { DB, DBEntry } from '../db';
 
