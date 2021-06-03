@@ -4,6 +4,7 @@
   "description": "Bot che risponde ai link di Simo sul gruppo di frontend",
   "main": "./dist/index.js",
   "scripts": {
+    "prepare": "husky install",
     "build": "tsc",
     "start": "node .",
     "lint": "yarn eslint src/ --ext .js,.ts",
@@ -24,6 +25,7 @@
     "@typescript-eslint/parser": "^4.26.0",
     "eslint": "^7.27.0",
     "eslint-config-prettier": "^8.3.0",
+    "husky": "^6.0.0",
     "prettier": "^2.3.0",
     "typescript": "^4.2.4"
   }
