@@ -17,12 +17,13 @@ import {
 import { ADMIN_ID, GROUP_ID, stickers } from "./constants"
 import { addNewLink, DB } from "./db"
 import { OMG } from "./OMG"
+import { omgCommand } from "./commands/omgCommand"
 import { rebuildFromHistory } from "./rebuildFromHistory"
 import { randomNumber } from "./utils"
 import { veryFunnyMessagesAboutFlutter } from "./veryFunnyMessagesAboutFlutter"
 
 export const bot = new Telegraf(process.env.BOT_TOKEN || "")
-const Omg = new OMG()
+export const Omg = new OMG()
 
 bot.telegram.setMyCommands([
   { command: "/start", description: "Messaggio iniziale." },
@@ -43,15 +44,11 @@ const COMMANDS: { [i: string]: HandlerFn } = {
   "/rebuild": rebuildCommand,
   "/check": checkCommand,
   "/send": sendCommand,
+  "/omg": omgCommand,
 }
 
-bot.command("/omg", () => {
-  console.log("Set OMG.")
-  Omg.omg(() => null)
-})
-
-for (const c in COMMANDS) {
-  bot.command(c, COMMANDS[c])
+for (const [command, handler] of Object.entries(COMMANDS)) {
+  bot.command(command, handler)
 }
 
 bot.on(["text", "document"], (ctx) => {
@@ -130,7 +127,7 @@ function messageFromGroupWithLink(
       ctx.reply("🔼", { reply_to_message_id: oldLink.id })
     } else if (newLink) {
       console.log("Got new link.")
-      newLinkFromGroup(newLink)
+      addNewLink(newLink)
     }
   }
 }
@@ -141,14 +138,6 @@ function replyToBadBot(ctx: CommandHandlerParams) {
 
 function replyToGoodBot(ctx: CommandHandlerParams) {
   replyWithSticker(ctx, stickers.goodBot)
-}
-
-/**
- * Step da eseguire quando si riceve un nuovo link nel gruppo.
- * Aggiunge un link al db.
- */
-function newLinkFromGroup(link: string) {
-  addNewLink(link)
 }
 
 /**
