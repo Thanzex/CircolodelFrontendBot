@@ -21,6 +21,7 @@ import { omgCommand } from "./commands/omgCommand"
 import { rebuildFromHistory } from "./rebuildFromHistory"
 import { randomNumber } from "./utils"
 import { veryFunnyMessagesAboutFlutter } from "./veryFunnyMessagesAboutFlutter"
+import { veryFunnyMessagesAboutIntellij } from "./veryFunnyMessagesAboutIntellij"
 
 export const bot = new Telegraf(process.env.BOT_TOKEN || "")
 export const Omg = new OMG()
@@ -84,6 +85,17 @@ function handleMessageFromGroup(
 ) {
   if (!("text" in message)) return
 
+  checkForFlutter(message)
+  checkForIntellij(message)
+
+  if (extractLinkFromMessage(message)) {
+    messageFromGroupWithLink(message, ctx)
+  } else {
+    normalMessageFromGroup(message, ctx)
+  }
+}
+
+function checkForFlutter(message: Message.TextMessage) {
   if (message.text.match(/flutter/gim)) {
     replyWithMarkdown(
       message,
@@ -91,10 +103,17 @@ function handleMessageFromGroup(
         randomNumber(0, veryFunnyMessagesAboutFlutter.length)
       ]
     )
-  } else if (extractLinkFromMessage(message)) {
-    messageFromGroupWithLink(message, ctx)
-  } else {
-    normalMessageFromGroup(message, ctx)
+  }
+}
+
+function checkForIntellij(message: Message.TextMessage) {
+  if (message.text.match(/intellij/gim)) {
+    replyWithMarkdown(
+      message,
+      veryFunnyMessagesAboutIntellij[
+        randomNumber(0, veryFunnyMessagesAboutIntellij.length)
+      ]
+    )
   }
 }
 

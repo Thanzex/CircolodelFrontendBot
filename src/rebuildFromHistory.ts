@@ -22,7 +22,7 @@ export function rebuildFromHistory(history: string): void {
 
   function handleNewLinks(node: HTMLElement, linkNodes: HTMLElement[]): void {
     const messageId = +node.id.substring(7)
-    const links = linkNodes.map((node) => node.attrs.href)
+    const links = linkNodes.map((el) => el.attrs.href)
     links.forEach((link) => addNewLink(link, messageId))
   }
 }
