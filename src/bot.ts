@@ -1,8 +1,10 @@
 import axios from "axios"
 import { Telegraf } from "telegraf"
 import { Message } from "telegraf/typings/core/types/typegram"
+import { cannedResponses } from "./cannedResponses"
 import { checkCommand } from "./commands/checkCommand"
 import { linksCommand } from "./commands/linksCommand"
+import { omgCommand } from "./commands/omgCommand"
 import { rebuildCommand } from "./commands/rebuildCommand"
 import { sendCommand } from "./commands/sendMessageToGroup"
 import { startCommand } from "./commands/startCommand"
@@ -17,11 +19,8 @@ import {
 import { ADMIN_ID, GROUP_ID, stickers } from "./constants"
 import { addNewLink, DB } from "./db"
 import { OMG } from "./OMG"
-import { omgCommand } from "./commands/omgCommand"
 import { rebuildFromHistory } from "./rebuildFromHistory"
 import { randomNumber } from "./utils"
-import { veryFunnyMessagesAboutFlutter } from "./veryFunnyMessagesAboutFlutter"
-import { veryFunnyMessagesAboutIntellij } from "./veryFunnyMessagesAboutIntellij"
 
 export const bot = new Telegraf(process.env.BOT_TOKEN || "")
 export const Omg = new OMG()
@@ -85,8 +84,7 @@ function handleMessageFromGroup(
 ) {
   if (!("text" in message)) return
 
-  checkForFlutter(message)
-  checkForIntellij(message)
+  checkForCannedResponse(message)
 
   if (extractLinkFromMessage(message)) {
     messageFromGroupWithLink(message, ctx)
@@ -95,25 +93,11 @@ function handleMessageFromGroup(
   }
 }
 
-function checkForFlutter(message: Message.TextMessage) {
-  if (message.text.match(/flutter/gim)) {
-    replyWithMarkdown(
-      message,
-      veryFunnyMessagesAboutFlutter[
-        randomNumber(0, veryFunnyMessagesAboutFlutter.length)
-      ]
-    )
-  }
-}
-
-function checkForIntellij(message: Message.TextMessage) {
-  if (message.text.match(/intellij/gim)) {
-    replyWithMarkdown(
-      message,
-      veryFunnyMessagesAboutIntellij[
-        randomNumber(0, veryFunnyMessagesAboutIntellij.length)
-      ]
-    )
+function checkForCannedResponse(message: Message.TextMessage) {
+  for (const [regexp, responses] of Object.entries(cannedResponses)) {
+    if (message.text.match(regexp)) {
+      replyWithMarkdown(message, responses[randomNumber(0, responses.length)])
+    }
   }
 }
 
@@ -122,10 +106,10 @@ function normalMessageFromGroup(
   ctx: CommandHandlerParams
 ) {
   console.log("Normal message.")
-  if (message.text?.match(/good\sbot/gim)) {
+  if (message.text.match(/good\sbot/gim)) {
     console.log("Good bot 🤩")
     replyToGoodBot(ctx)
-  } else if (message.text?.match(/bad\sbot/gim)) {
+  } else if (message.text.match(/bad\sbot/gim)) {
     console.log("Bad bot 😥")
     replyToBadBot(ctx)
   }
