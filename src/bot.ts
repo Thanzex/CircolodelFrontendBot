@@ -5,7 +5,7 @@ import { cannedResponses } from "./cannedResponses"
 import { checkCommand } from "./commands/checkCommand"
 import { linksCommand } from "./commands/linksCommand"
 import { omgCommand } from "./commands/omgCommand"
-import { rebuildCommand } from "./commands/rebuildCommand"
+import { addCommand } from "./commands/addCommand"
 import { sendCommand } from "./commands/sendMessageToGroup"
 import { startCommand } from "./commands/startCommand"
 import { testCommand } from "./commands/testCommand"
@@ -19,8 +19,9 @@ import {
 import { ADMIN_ID, GROUP_ID, stickers } from "./constants"
 import { addNewLink, DB } from "./db"
 import { OMG } from "./OMG"
-import { rebuildFromHistory } from "./rebuildFromHistory"
+import { getLinksFromHistory as getLinksFromHistory } from "./rebuildFromHistory"
 import { randomNumber } from "./utils"
+import { resetCommand } from "./commands/resetCommand"
 
 export const bot = new Telegraf(process.env.BOT_TOKEN || "")
 export const Omg = new OMG()
@@ -41,7 +42,8 @@ const COMMANDS: { [i: string]: HandlerFn } = {
   "/start": startCommand,
   "/test": testCommand,
   "/links": linksCommand,
-  "/rebuild": rebuildCommand,
+  "/add": addCommand,
+  "/reset": resetCommand,
   "/check": checkCommand,
   "/send": sendCommand,
   "/omg": omgCommand,
@@ -152,27 +154,27 @@ function handlePrivateMessage(
 ) {
   const rebuilding = DB.getData("/admin/DB/rebuilding")
   if (rebuilding.inProgress && rebuilding.chatId == message.chat.id) {
-    rebuildDatabase(message)
+    addLinksFromFile(message)
   }
+  if ("text" in message) checkForCannedResponse(message)
 }
 
 /**
  * Ricostruisce il DB a partire da un messaggio con una lista di link
  */
-async function rebuildDatabase(
+async function addLinksFromFile(
   message: Message.TextMessage | Message.DocumentMessage
 ) {
-  console.log("Rebuilding database.")
+  console.log("Adding links.")
   if (!("document" in message)) {
     console.log("Invalid message.")
     return
   }
-  DB.push("/links", [])
   const { document } = message
   const { file_id: fileId } = document
   const fileUrl = await bot.telegram.getFileLink(fileId)
   const response = await axios.get(fileUrl.href)
-  rebuildFromHistory(response.data)
+  getLinksFromHistory(response.data)
   bot.telegram.sendMessage(
     message.chat.id,
     `Completato!\nLink nel DB: ${DB.count("/links")}`

@@ -4,7 +4,7 @@ import { addNewLink } from "./db"
 /**
  * Ricostruisce il DB da un dump della chat di telegram
  */
-export function rebuildFromHistory(history: string): void {
+export function getLinksFromHistory(history: string): void {
   const root = parse(history)
   const historyElement = root.querySelector(".history")
   const historyNodes = historyElement.querySelectorAll(".message")
