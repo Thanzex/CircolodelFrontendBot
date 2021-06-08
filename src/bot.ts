@@ -94,7 +94,8 @@ function handleMessageFromGroup(
 }
 
 function checkForCannedResponse(message: Message.TextMessage) {
-  for (const [regexp, responses] of Object.entries(cannedResponses)) {
+  for (const behaviour of cannedResponses) {
+    const [regexp, responses] = behaviour
     if (message.text.match(regexp)) {
       replyWithMarkdown(message, responses[randomNumber(0, responses.length)])
     }
